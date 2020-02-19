@@ -12,19 +12,40 @@ from fbchat import Client, User, Message, Mention, ThreadType
 
 
 class Reporter(Client):
+    debug: bool
     logger: Logger
+    maxage: timedelta
     messages: Dict[str, Message] = dict()
-    cache_expiry: timedelta
 
     def __init__(
-        self, username: str, password: str, cache_expiry=timedelta(minutes=10),
+        self,
+        username: str,
+        password: str,
+        cookies: Dict,
+        maxage=timedelta(minutes=10),
+        debug=False,
     ) -> None:
-        super(Reporter, self).__init__(username, password, logging_level=logging.ERROR)
+        level = logging.DEBUG if debug else logging.INFO
+        client_level = logging.INFO if debug else logging.ERROR
 
+        logger = Logger(Reporter.__name__, level)
+        logger.addHandler(logging.StreamHandler())
+        logger.info("Authenticating client...")
+
+        super(Reporter, self).__init__(
+            username,
+            password,
+            session_cookies=cookies,
+            logging_level=client_level,
+            user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.5 Safari/605.1.15",
+        )
         self.setDefaultThread(self.uid, ThreadType.USER)
+        logger.info("Client authenticated.")
+
+        self.debug = debug
+        self.logger = logger
+        self.maxage = maxage
         self.messages = dict()
-        self.logger = Logger("Reporter", logging.INFO)
-        self.cache_expiry = cache_expiry
 
     def __clean(self) -> bool:
         self.logger.info("Cleaning up expired messages...")
@@ -36,7 +57,7 @@ class Reporter(Client):
             timestamp = datetime.fromtimestamp(message.timestamp / 1000)
             timestamp += timedelta(milliseconds=(message.timestamp % 1000))
 
-            if now > (timestamp + self.cache_expiry):
+            if now > (timestamp + self.maxage):
                 discarded += 1
             else:
                 messages[id] = message
@@ -52,24 +73,29 @@ class Reporter(Client):
     __counter = 0
 
     def onMessage(
-        self, mid: str, author_id: str, message_object: Message, **kwargs,
+        self, mid: str, message: str, author_id: str, message_object: Message, **kwargs,
     ) -> None:
-        if author_id == self.uid:
-            return
+        if not self.debug:
+            if author_id == self.uid:
+                return
+
+        self.logger.debug(f"Received message: {message}")
+        self.logger.debug(f"Cached messages: {len(self.messages)}")
 
         self.messages[mid] = message_object
         self.__counter += 1
-        if self.__counter >= 3:
+        if self.__counter >= 60:
             self.__counter = 0
             self.__clean()
 
     def onMessageUnsent(self, mid: str, author_id: str, **kwargs) -> None:
-        if author_id == self.uid:
-            return
+        if not self.debug:
+            if author_id == self.uid:
+                return
 
         author: User = self.fetchUserInfo(author_id)[author_id]
         name = author.name
-        self.logger.info(f"Caught unsend by {name}")
+        self.logger.info(f"Caught unsend by {name}.")
 
         message = Message(
             f"{name} unsent a message.",
