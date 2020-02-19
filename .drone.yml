@@ -2,10 +2,9 @@ kind: pipeline
 name: default
 
 steps:
-  - name: freeze
+  - name: requirements
     image: kennethreitz/pipenv
-    commands:
-      - pipenv run pip freeze > requirements.txt
+    commands: ["pipenv lock -r | tee requirements.txt"]
 
   - name: info
     image: alpine/git
