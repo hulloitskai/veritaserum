@@ -1,0 +1,50 @@
+kind: pipeline
+name: default
+
+steps:
+  - name: freeze
+    image: kennethreitz/pipenv
+    commands:
+      - pipenv run pip freeze > requirements.txt
+
+  - name: info
+    image: alpine/git
+    commands:
+      - git fetch --tags
+      - git describe --tags 2> /dev/null | cut -c 2- > /info/version
+      - git rev-parse HEAD 2> /dev/null > /info/commit
+      - git rev-parse --abbrev-ref HEAD 2> /dev/null > /info/branch
+      - head -1 < go.mod | awk '{print $2}' 2> /dev/null > /info/module
+      - tail -n +1 /info/*
+    volumes:
+      - name: info
+        path: /info
+
+  - name: build
+    image: stevenxie/kaniko-drone
+    settings: &settings
+      repo: stevenxie/veritaserum
+      dockerfile: Dockerfile
+      tags:
+        - |
+          $([ $DRONE_BUILD_EVENT != tag ] && \
+            printf '%s-%s' $(cat /i/branch | tr / -) $(cat /i/commit) || true)
+        - |
+          $([ $DRONE_BUILD_EVENT != pull_request ] && \
+            [ $(cat /i/branch) == master ] && \
+            echo latest || true)
+        - |
+          $([ $DRONE_BUILD_EVENT != pull_request ] && \
+            ([ $DRONE_BUILD_EVENT == tag ] || \
+             [ $(cat /i/branch) == master ]) && \
+             cat /i/version || true)
+      username: stevenxie
+      password:
+        from_secret: docker_token
+    volumes: &volumes
+      - name: info
+        path: /i
+
+volumes:
+  - name: info
+    temp: {}

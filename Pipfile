@@ -1,0 +1,16 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+black = ">=19"
+flake8 = ">=3.7"
+
+[packages]
+fbchat = ">=1.9"
+flake8 = ">=3.7"
+python-dotenv = ">=0.11"
+
+[requires]
+python_version = "3.7"
