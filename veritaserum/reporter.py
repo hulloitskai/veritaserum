@@ -22,7 +22,7 @@ class Reporter(Client):
         username: str,
         password: str,
         cookies: Dict,
-        maxage=timedelta(minutes=30),
+        maxage=timedelta(hours=1),
         debug=False,
     ) -> None:
         level = logging.DEBUG if debug else logging.INFO
