@@ -2,11 +2,11 @@ import os
 import json
 import base64
 
-from datetime import timedelta
 from typing import Dict, Union
-from dotenv import load_dotenv
+from datetime import timedelta
 
-from .reporter import Reporter
+from dotenv import load_dotenv
+from reporter import Reporter
 
 if __name__ == "__main__":
     load_dotenv()

@@ -29,7 +29,7 @@ MESSENGER_PASSWORD=...
 VERITASERUM_DEBUG=1
 EOF
 
-$ pipenv run python -m veritaserum
+$ pipenv run python veritaserum
 ```
 
 Or, in a container with [Docker](https://www.docker.com):
