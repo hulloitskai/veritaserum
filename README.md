@@ -2,11 +2,9 @@
 
 _The truth, and nothing but the truth._
 
-[![Drone][drone-img]][drone]
-
 `veritaserum` recover unsends (deleted messages) in Messenger conversations,
-and sends them to your Messenger inbox. Text, image, and video unsends are
-all recoverable.
+and sends them to your private Messenger inbox, so that you can catch the sus
+takebacks in your groupchats. Text, image, and video unsends are all recoverable.
 
 <br />
 <p align="center">
@@ -68,6 +66,3 @@ eyJoZXkiLCAidGhpcyBpcyBhIGR1bW15IGZpbGUgbG1hbyJ9...
 ```
 
 And set it as the value for the environment variable `MESSENGER_SESSION`.
-
-[drone]: https://ci.stevenxie.me/stevenxie/veritaserum
-[drone-img]: https://ci.stevenxie.me/api/badges/stevenxie/veritaserum/status.svg
